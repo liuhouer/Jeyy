@@ -45,6 +45,16 @@ public class TestController extends BaseAction{
 		  map.put("name", name);
 		  return new JsonRenderer(JsonUtil.object2json(map));
 	  }
+	  
+	  @MapPath("/getError")
+	  public Renderer getError() {
+		  String name = JeyyContext().getRequest().getParameter("name");
+		  Map<String, Object> map = new HashMap<>();
+		  map.put("name", name);
+		  int a = 1/0;
+		  map.put("a", a);
+		  return new JsonRenderer(JsonUtil.object2json(map));
+	  }
 
 //	  @MapPath("/")
 //	  public Renderer returnDemo() throws Exception {
