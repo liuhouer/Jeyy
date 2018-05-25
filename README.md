@@ -13,7 +13,7 @@
 
 1. servlet 3.0环境，Tomcat/Jetty；
 1. 基于[guice]的Ioc，可以扩展IOC工厂；
-1. gradle构建；
+1. [gradle]构建；
 
 ## 配置web.xml
 
@@ -62,6 +62,7 @@
 
 
 [guice]: http://code.google.com/p/google-guice/
+[gradle]:https://gradle.org/
 
 
 
