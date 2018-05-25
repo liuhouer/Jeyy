@@ -4,7 +4,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import cn.northpark.jeyy.module.ActionContext;
+import cn.northpark.jeyy.module.JeyyContext;
 
 /**
  * HttpUtils that contains useful methods to access HTTP objects.
@@ -69,7 +69,7 @@ public class HttpUtils {
      * @return String value.
      */
     public static String getStringParameter(String name, String defaultValue) {
-        HttpServletRequest request = ActionContext.getActionContext().getRequest();
+        HttpServletRequest request = JeyyContext.getActionContext().getRequest();
         String value = request.getParameter(name);
         return value==null ? defaultValue : value;
     }
@@ -82,7 +82,7 @@ public class HttpUtils {
      * @return Parameter values as String array.
      */
     public static String[] getParameterValues(String name) {
-        HttpServletRequest request = ActionContext.getActionContext().getRequest();
+        HttpServletRequest request = JeyyContext.getActionContext().getRequest();
         String[] values = request.getParameterValues(name);
         return values==null ? EMPTY_VALUES : values;
     }
@@ -105,7 +105,7 @@ public class HttpUtils {
      * @return Cookie value.
      */
     public static String getCookie(String name, String defaultValue) {
-        HttpServletRequest request = ActionContext.getActionContext().getRequest();
+        HttpServletRequest request = JeyyContext.getActionContext().getRequest();
         Cookie[] cookies = request.getCookies();
         if (cookies!=null) {
             for (Cookie cookie : cookies) {
@@ -156,7 +156,7 @@ public class HttpUtils {
      * @param path Cookie path.
      */
     public static void setCookie(String name, String value, int maxAgeInSeconds, String path) {
-        HttpServletResponse response = ActionContext.getActionContext().getResponse();
+        HttpServletResponse response = JeyyContext.getActionContext().getResponse();
         Cookie cookie = new Cookie(name, value);
         cookie.setMaxAge(maxAgeInSeconds);
         cookie.setPath(path);

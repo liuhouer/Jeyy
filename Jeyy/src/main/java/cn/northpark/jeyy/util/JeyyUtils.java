@@ -6,7 +6,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import cn.northpark.jeyy.config.ConfigException;
-import cn.northpark.jeyy.container.ContainerFactory;
+import cn.northpark.jeyy.container.IocFactory;
 import cn.northpark.jeyy.template.TemplateFactory;
 
 /**
@@ -25,10 +25,10 @@ public class JeyyUtils {
      * @return
      * @throws ServletException
      */
-    public static ContainerFactory createContainerFactory(String name) throws ServletException {
-        ContainerFactory cf = initContainerFactory(name);
+    public static IocFactory createIocFactory(String name) throws ServletException {
+        IocFactory cf = initIocFactory(name);
         if (cf==null)
-            cf = initContainerFactory(ContainerFactory.class.getPackage().getName() + "." + name + ContainerFactory.class.getSimpleName());
+            cf = initIocFactory(IocFactory.class.getPackage().getName() + "." + name + IocFactory.class.getSimpleName());
         if (cf==null)
             throw new ConfigException("Cannot create container factory by name '" + name + "'.");
         return cf;
@@ -40,11 +40,11 @@ public class JeyyUtils {
      * @param clazz
      * @return
      */
-    static ContainerFactory initContainerFactory(String clazz) {
+    static IocFactory initIocFactory(String clazz) {
         try {
             Object obj = Class.forName(clazz).newInstance();
-            if (obj instanceof ContainerFactory)
-                return (ContainerFactory) obj;
+            if (obj instanceof IocFactory)
+                return (IocFactory) obj;
         }
         catch (Exception e) { }
         return null;

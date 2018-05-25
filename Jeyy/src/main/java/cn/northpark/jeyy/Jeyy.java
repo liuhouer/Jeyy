@@ -18,17 +18,17 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import cn.northpark.jeyy.annotation.InterceptorOrder;
 import cn.northpark.jeyy.annotation.MapPath;
 import cn.northpark.jeyy.config.Config;
 import cn.northpark.jeyy.config.ConfigException;
-import cn.northpark.jeyy.container.ContainerFactory;
+import cn.northpark.jeyy.container.IocFactory;
 import cn.northpark.jeyy.exception.DefaultExceptionHandler;
 import cn.northpark.jeyy.exception.ExceptionHandler;
 import cn.northpark.jeyy.interceptor.Interceptor;
 import cn.northpark.jeyy.interceptor.InterceptorChainImpl;
-import cn.northpark.jeyy.interceptor.InterceptorOrder;
 import cn.northpark.jeyy.module.Action;
-import cn.northpark.jeyy.module.ActionContext;
+import cn.northpark.jeyy.module.JeyyContext;
 import cn.northpark.jeyy.module.Execution;
 import cn.northpark.jeyy.renderer.JavaScriptRenderer;
 import cn.northpark.jeyy.renderer.Renderer;
@@ -53,7 +53,7 @@ public class Jeyy {
     private final Log log = LogFactory.getLog(getClass());
 
     private ServletContext servletContext;
-    private ContainerFactory containerFactory;
+    private IocFactory containerFactory;
     private boolean multipartSupport = false;
     private long maxFileSize = 10L * 1024L * 1024L; // default to 10M.
     private PathMatcher[] urlMatchers = null;
@@ -105,7 +105,7 @@ public class Jeyy {
         if (containerName==null)
             throw new ConfigException("Missing init parameter <container>.");
         //创建一个containerFactory
-        this.containerFactory = JeyyUtils.createContainerFactory(containerName);
+        this.containerFactory = JeyyUtils.createIocFactory(containerName);
         //初始化containerFactory, 必须保证, 这个类是单例, 否则的话, containerFactory 会有多份.
         this.containerFactory.init(config);
         List<Object> beans = this.containerFactory.findAllBeans();
@@ -304,7 +304,7 @@ public class Jeyy {
 
         //初始化 ActionContext，并在 finally 中移除所有已绑定变量
     	//把request和response封装到ThreadLocal中, 供其他类使用
-        ActionContext.setActionContext(servletContext, request, response);
+        JeyyContext.setActionContext(servletContext, request, response);
         
         //调用拦截器链
         try {
@@ -319,7 +319,7 @@ public class Jeyy {
             handleException(request, response, e);
         }
         finally {
-            ActionContext.removeActionContext();
+            JeyyContext.removeActionContext();
         }
     }
 
