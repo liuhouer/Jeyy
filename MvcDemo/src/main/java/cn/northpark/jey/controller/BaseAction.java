@@ -1,12 +1,12 @@
 package cn.northpark.jey.controller;
 
-import cn.northpark.jeyy.module.ActionContext;
+import cn.northpark.jeyy.module.JeyyContext;
 
 public abstract class BaseAction{
 
 	
-	public ActionContext JeyyContext() {
-		return ActionContext.getActionContext();
+	public JeyyContext JeyyContext() {
+		return JeyyContext.getActionContext();
 		
 	}
 	
