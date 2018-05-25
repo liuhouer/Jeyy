@@ -15,18 +15,31 @@ public class DefaultExceptionHandler implements ExceptionHandler {
     /**
      * Handle exception that print stack trace on HTML page.
      */
-    public Object  handle(HttpServletRequest request, HttpServletResponse response, Exception e) throws Exception {
+    public void  handle(HttpServletRequest request, HttpServletResponse response, Exception e) throws Exception {
       
         
         if (isAjax(request)) {
-    			return ResultGenerator.genErrorResult(ResultCode.SERVER_ERROR.getCode(),ResultCode.SERVER_ERROR.getMessage()+"-->"+e.getMessage());
-    	} else {
+    			    String text = ResultGenerator.genErrorResult(ResultCode.SERVER_ERROR.getCode(),ResultCode.SERVER_ERROR.getMessage()+"-->"+e.getMessage()).toString();
+    			    StringBuilder sb = new StringBuilder(64);
+    		        sb.append("application/json")
+    		          .append(";charset=")
+    		          .append("UTF-8");
+    		        response.setContentType(sb.toString());
+    		        PrintWriter pw = response.getWriter();
+    		        pw.write(text);
+    		        pw.flush();
+        } else {
+        	
+        	    StringBuilder sb = new StringBuilder(64);
+		        sb.append("text/html")
+		          .append(";charset=")
+		          .append("UTF-8");
+		        response.setContentType(sb.toString());
     		    PrintWriter pw = response.getWriter();
-    	        pw.write("<html><head><title>Exception</title></head><body><pre>");
+    	        pw.write("<html><head><title>Exception</title></head><body><h1>星际穿越</h1><div><p><pre style=\"padding:16px; overflow: auto;font-size: 85%;line-height: 1.45;background-color: #f6f8fa;border-radius: 3px;\">");
     	        e.printStackTrace(pw);
-    	        pw.write("</pre></body></html>");
+    	        pw.write("</pre></p></div></body></html>");
     	        pw.flush();
-    	        return null;
     	}
     }
     

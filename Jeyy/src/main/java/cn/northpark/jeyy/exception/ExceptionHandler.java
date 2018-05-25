@@ -29,6 +29,6 @@ public interface ExceptionHandler {
      * @param e The target exception.
      * @throws Exception If exception occurs or re-throw when handling.
      */
-    Object handle(HttpServletRequest request, HttpServletResponse response, Exception e) throws Exception;
+    void handle(HttpServletRequest request, HttpServletResponse response, Exception e) throws Exception;
 
 }
