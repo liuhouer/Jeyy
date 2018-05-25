@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app id="WebApp_ID" version="3.0" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd">
+<!-- jeyyServlet配置 -->
+    <context-param>
+        <param-name>Jeyy</param-name>
+        <param-value>Jeyy</param-value>
+    </context-param>
+    
+	<servlet>
+		<servlet-name>dispatcher</servlet-name>
+		<servlet-class>cn.northpark.jeyy.servlet.JeyyServlet</servlet-class>
+		<init-param>
+			<param-name>template</param-name>
+			<param-value>Velocity</param-value>
+		</init-param>
+		<init-param>
+			<param-name>container</param-name>
+			<param-value>Guice</param-value>
+		</init-param>
+		<init-param>
+			<param-name>modules</param-name>
+			<param-value>cn.northpark.jey.module.ActionModule</param-value>
+		</init-param>
+		 
+		<load-on-startup>0</load-on-startup>
+	</servlet>
+    <servlet-mapping>
+        <servlet-name>dispatcher</servlet-name>
+        <url-pattern>/</url-pattern>
+    </servlet-mapping>
+    
+
+</web-app>
