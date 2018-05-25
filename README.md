@@ -15,16 +15,46 @@
 1. 基于[guice]的Ioc，可以扩展IOC工厂；
 1. gradle构建；
 
-## Hello World
+## 配置web.xml
 
-请参考例子 samples/hello-world
+``` xml
+<servlet>
+		<servlet-name>dispatcher</servlet-name>
+		<!-- 配置核心控制器  -->
+		<servlet-class>cn.northpark.jeyy.servlet.JeyyServlet</servlet-class>
+		<init-param>
+			<param-name>template</param-name>
+			<!-- 配置选择的模板引擎，可以Jsp 或者扩展freemarker等等 -->
+			<param-value>Velocity</param-value>
+		</init-param>
+		<init-param>
+			<param-name>container</param-name>
+			<!-- 配置容器工厂，可以扩展为Spring等等 -->
+			<param-value>Guice</param-value>
+		</init-param>
+		<init-param>
+			<param-name>modules</param-name>
+			<!-- 配置Guice的初始化Module，按需自定义... -->
+			<param-value>cn.northpark.jey.module.ActionModule</param-value>
+		</init-param>
+		 
+		<load-on-startup>0</load-on-startup>
+	</servlet>
+    <servlet-mapping>
+        <servlet-name>dispatcher</servlet-name>
+        <url-pattern>/</url-pattern>
+    </servlet-mapping>
+```
+
+请参考例子 mvcDomo的实现
 
 
 ## 进阶
 
+ 1. 自定义拦截器（实现cn.northpark.jeyy.interceptor.Interceptor）
+ 2. 连接db操作
 
 
-## 如何实现 (how)
 
 
 
