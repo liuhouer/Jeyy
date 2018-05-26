@@ -10,6 +10,12 @@
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
 
+
+# 忽略名称中间包含ignore的文件夹
+*gradle*/
+*build/
+*gradle/
+
 # Package Files #
 *.jar
 *.war

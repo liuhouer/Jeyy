@@ -27,7 +27,7 @@ import cn.northpark.jeyy.config.Config;
  * 和 DispatcherServlet 类似，编写一个 DispatcherFilter 作为前置处理器，负责转发请求
  * 
  * 
- * 如果用 DispatcherFilter 代替 DispatcherServlet，则需要过滤“/*”，在 web.xml 中添加声明 
+ * 如果用 Filter 代替 Servlet，则需要过滤“/*”，在 web.xml 中添加声明 
  *	<filter> 
  *	    <filter-name>dispatcher</servlet-name> 
  *	    <filter-class>x.x.x.x.DispatcherFilter</servlet-class> 
@@ -43,12 +43,15 @@ public class JeyyFilter implements Filter {
 
     private final Log log = LogFactory.getLog(getClass());
 
-    private Jeyy dispatcher;
+    /**
+     * 最核心的控制器
+     */
+    private Jeyy top_dispatcher;
 
     public void init(final FilterConfig filterConfig) throws ServletException {
-        log.info("Init DispatcherFilter...");
-        this.dispatcher = new Jeyy();
-        this.dispatcher.init(
+        log.info("Init JeyyFilter...");
+        this.top_dispatcher = new Jeyy();
+        this.top_dispatcher.init(
                 new Config() {
                     public String getInitParameter(String name) {
                         return filterConfig.getInitParameter(name);
@@ -66,7 +69,7 @@ public class JeyyFilter implements Filter {
         HttpServletResponse httpResp = (HttpServletResponse) resp;
         String method = httpReq.getMethod();
         if ("GET".equals(method) || "POST".equals(method)) {
-            if (!dispatcher.service(httpReq, httpResp))
+            if (!top_dispatcher.service(httpReq, httpResp))
                 chain.doFilter(req, resp);
             return;
         }
@@ -74,8 +77,8 @@ public class JeyyFilter implements Filter {
     }
 
     public void destroy() {
-        log.info("Destroy DispatcherFilter...");
-        this.dispatcher.destroy();
+        log.info("Destroy JeyyFilter...");
+        this.top_dispatcher.destroy();
     }
 
 }

@@ -52,21 +52,48 @@ public class Jeyy {
 
     private final Log log = LogFactory.getLog(getClass());
 
+    /**
+     * 上下文
+     */
     private ServletContext servletContext;
-    private IocFactory containerFactory;
+    /**
+     * 容器工厂
+     */
+    private IocFactory iocFactory;
+    /**
+     * 文件上传
+     */
     private boolean multipartSupport = false;
+    /**
+     * 文件上传限制
+     */
     private long maxFileSize = 10L * 1024L * 1024L; // default to 10M.
-    private PathMatcher[] urlMatchers = null;
-    private Map<PathMatcher, Action> urlMap = new HashMap<PathMatcher, Action>();
+    /**
+     * 路径匹配
+     */
+    private PathMatcher[] pathMatchers = null;
+    /**
+     * 路径匹配指向具体的action
+     */
+    private Map<PathMatcher, Action> pathMap = new HashMap<PathMatcher, Action>();
+    /**
+     * 转换工厂
+     */
     private ConverterFactory converterFactory = new ConverterFactory();
+    /**
+     * 拦截器
+     */
     private Interceptor[] interceptors = null;
+    /**
+     * 异常处理
+     */
     private ExceptionHandler exceptionHandler = null;
 
     public void init(Config config) throws ServletException {
-        log.info("Init Dispatcher...");
+        log.info("Init your Config's Dispatcher...");
         this.servletContext = config.getServletContext();
         try {
-            initAll(config);
+            initEveryThing(config);
         }
         catch (ServletException e) {
             throw e;
@@ -76,13 +103,13 @@ public class Jeyy {
         }
     }
 
-    void initAll(Config config) throws Exception {
+    void initEveryThing(Config config) throws Exception {
     	//初始化文件上传, 如果不存在这个类, 则会抛异常, 这样的话, 系统就不支持multipartSupport.
     	//这种处理手法非常适合支持组件
         try {
             Class.forName("org.apache.commons.fileupload.servlet.ServletFileUpload");
             this.multipartSupport = true;
-            log.info("Using CommonsFileUpload to handle multipart http request.");
+            log.info("add CommonsFileUpload 2 handle file upload.. sth.. http request.");
             String maxFileSize = config.getInitParameter("maxFileSize");
             if (maxFileSize!=null) {
                 try {
@@ -97,18 +124,18 @@ public class Jeyy {
             }
         }
         catch (ClassNotFoundException e) {
-            log.info("CommonsFileUpload not found. Multipart http request can not be handled.");
+            log.info("CommonsFileUpload not found. Multipart http request can not be handled. You can add repository 2 build.");
         }
 
         //获取container的名字
-        String containerName = config.getInitParameter("container");
-        if (containerName==null)
-            throw new ConfigException("Missing init parameter <container>.");
-        //创建一个containerFactory
-        this.containerFactory = JeyyUtils.createIocFactory(containerName);
-        //初始化containerFactory, 必须保证, 这个类是单例, 否则的话, containerFactory 会有多份.
-        this.containerFactory.init(config);
-        List<Object> beans = this.containerFactory.findAllBeans();
+        String iocName = config.getInitParameter("container");
+        if (iocName==null)
+            throw new ConfigException("Config Error: missing init parameter <container>...");
+        //创建一个iocFactory
+        this.iocFactory = JeyyUtils.createIocFactory(iocName);
+        //初始化iocFactory, 必须保证, 这个类是单例, 否则的话, iocFactory 会有多份.
+        this.iocFactory.init(config);
+        List<Object> beans = this.iocFactory.findAllBeans();
         //初始化所有的组件
         initComponents(beans);
 
@@ -139,7 +166,7 @@ public class Jeyy {
      * @param beans
      */
     void initComponents(List<Object> beans) {
-    	//这里的beans, 就是所有带有@Mapped方法的类(具体的Action)
+    	//这里的beans, 就是所有带有@PathMap方法的类(具体的Action)
         List<Interceptor> intList = new ArrayList<Interceptor>();
         for (Object bean : beans) {
         	//如果是Interceptor的话, 则加入到Interceptor队列中
@@ -147,7 +174,8 @@ public class Jeyy {
                 intList.add((Interceptor)bean);
             if (this.exceptionHandler==null && bean instanceof ExceptionHandler)
                 this.exceptionHandler = (ExceptionHandler) bean;
-            addActions(bean);
+            //找出action类的所有标注方法放到Map中
+            putAnnotionMehtod2Map(bean);
         }
       //定义一个处理异常的handler, 这个是非常好的. 可以专门一个异常模板去渲染
         if (this.exceptionHandler==null)
@@ -169,17 +197,17 @@ public class Jeyy {
                     }
                 }
         );
-        this.urlMatchers = urlMap.keySet().toArray(new PathMatcher[urlMap.size()]);
+        this.pathMatchers = pathMap.keySet().toArray(new PathMatcher[pathMap.size()]);
         //对urlMather按url排序
         Arrays.sort(
-                this.urlMatchers,
+                this.pathMatchers,
                 new Comparator<PathMatcher>() {
                     public int compare(PathMatcher o1, PathMatcher o2) {
                         String u1 = o1.url;
                         String u2 = o2.url;
                         int n = u1.compareTo(u2);
                         if (n==0)
-                            throw new ConfigException("Cannot mapping one url '" + u1 + "' to more than one action method.");
+                            throw new ConfigException("Config Error: Cannot mapping one url '" + u1 + "' to more than one action method.");
                         return n;
                     }
                 }
@@ -187,21 +215,21 @@ public class Jeyy {
     }
 
     //找出action类的所有标注方法放到Map中
-    void addActions(Object bean) {
+    void putAnnotionMehtod2Map(Object bean) {
         Class<?> clazz = bean.getClass();
         Method[] ms = clazz.getMethods();
         for (Method m : ms) {
             if (isActionMethod(m)) {
-                MapPath mapping = m.getAnnotation(MapPath.class);
+                MapPath mappath = m.getAnnotation(MapPath.class);
                 //获取被标记的路径
-                String url = mapping.value();
-                PathMatcher matcher = new PathMatcher(url);
+                String path = mappath.value();
+                PathMatcher matcher = new PathMatcher(path);
                 if (matcher.getArgumentCount()!=m.getParameterTypes().length) {
-                    warnInvalidActionMethod(m, "Arguments in URL '" + url + "' does not match the arguments of method.");
+                    logWarnMethod(m, "Arguments in Path '" + path + "' does not match the arguments of method.");
                     continue;
                 }
-                log.info("Mapping url '" + url + "' to method '" + m.toGenericString() + "'.");
-                urlMap.put(matcher, new Action(bean, m));
+                log.info("Mapping Path '" + path + "' to method '" + m.toGenericString() + "'.");
+                pathMap.put(matcher, new Action(bean, m));
             }
         }
     }
@@ -212,17 +240,17 @@ public class Jeyy {
         if (mappath==null)
             return false;
         if (mappath.value().length()==0) {
-            warnInvalidActionMethod(m, "Url mappath cannot be empty.");
+            logWarnMethod(m, "Url mappath cannot be empty.");
             return false;
         }
         if (Modifier.isStatic(m.getModifiers())) {
-            warnInvalidActionMethod(m, "method is static.");
+            logWarnMethod(m, "method is static.");
             return false;
         }
         Class<?>[] argTypes = m.getParameterTypes();
         for (Class<?> argType : argTypes) {
             if (!converterFactory.canConvert(argType)) {
-                warnInvalidActionMethod(m, "unsupported parameter '" + argType.getName() + "'.");
+                logWarnMethod(m, "unsupported parameter '" + argType.getName() + "'.");
                 return false;
             }
         }
@@ -235,12 +263,12 @@ public class Jeyy {
                 || Renderer.class.isAssignableFrom(retType)
         )
         return true;
-        warnInvalidActionMethod(m, "unsupported return type '" + retType.getName() + "'.");
+        logWarnMethod(m, "unsupported return type '" + retType.getName() + "'.");
         return false;
     }
 
     // log warning message of invalid action method:
-    void warnInvalidActionMethod(Method m, String string) {
+    void logWarnMethod(Method m, String string) {
         log.warn("Invalid Action method '" + m.toGenericString() + "': " + string);
     }
 
@@ -259,12 +287,12 @@ public class Jeyy {
             log.debug("Handle for URL: " + url);
         Execution execution = null;
         //遍历所有的urlMather, 查找符合的处理, 只找第一个, 因为不可能有多个, 这不是filterchain
-        for (PathMatcher matcher : this.urlMatchers) {
+        for (PathMatcher matcher : this.pathMatchers) {
             String[] args = matcher.getMatchedParameters(url);
             //有匹配的处理
             if (args!=null) {
             	//从urlMap中根据mathcer来获取对应的action
-                Action action = urlMap.get(matcher);
+                Action action = pathMap.get(matcher);
                 Object[] arguments = new Object[args.length];
                 for (int i=0; i<args.length; i++) {
                     Class<?> type = action.arguments[i];
@@ -384,7 +412,7 @@ public class Jeyy {
 
     public void destroy() {
         log.info("Destroy Dispatcher...");
-        this.containerFactory.destroy();
+        this.iocFactory.destroy();
     }
 
 }

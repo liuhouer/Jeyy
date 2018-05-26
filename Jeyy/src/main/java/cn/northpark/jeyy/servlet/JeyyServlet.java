@@ -47,16 +47,16 @@ public class JeyyServlet extends GenericServlet {
 	private final Log log = LogFactory.getLog(getClass());
     
     //核心控制器
-    private Jeyy dispatcher;
+    private Jeyy top_dispatcher;
     //处理未匹配到的url 当做静态文件处理
-    private JeyyStaticResourceServlet staticFileHandler;
+    private JeyyStaticResourceServlet jeyyStaticResourceHandler;
 
     @Override
     public void init(final ServletConfig config) throws ServletException {
         super.init(config);
-        log.info("Init DispatcherServlet...");
-        this.dispatcher = new Jeyy();
-        this.dispatcher.init(
+        log.info("Init JeyyServlet...");
+        this.top_dispatcher = new Jeyy();
+        this.top_dispatcher.init(
                 new Config() {
                     public String getInitParameter(String name) {
                         return config.getInitParameter(name);
@@ -67,7 +67,7 @@ public class JeyyServlet extends GenericServlet {
                     }
                 }
         );
-        this.staticFileHandler = new JeyyStaticResourceServlet(config);
+        this.jeyyStaticResourceHandler = new JeyyStaticResourceServlet(config);
     }
 
     @Override
@@ -76,8 +76,8 @@ public class JeyyServlet extends GenericServlet {
         HttpServletResponse httpResp = (HttpServletResponse) resp;
         String method = httpReq.getMethod();
         if ("GET".equals(method) || "POST".equals(method)) {
-            if (!dispatcher.service(httpReq, httpResp))
-                staticFileHandler.handle(httpReq, httpResp);
+            if (!top_dispatcher.service(httpReq, httpResp))
+                jeyyStaticResourceHandler.handle(httpReq, httpResp);
             return;
         }
         httpResp.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
@@ -85,8 +85,8 @@ public class JeyyServlet extends GenericServlet {
 
     @Override
     public void destroy() {
-        log.info("Destroy DispatcherServlet...");
-        this.dispatcher.destroy();
+        log.info("Destroy JeyyServlet...");
+        this.top_dispatcher.destroy();
     }
 
 }

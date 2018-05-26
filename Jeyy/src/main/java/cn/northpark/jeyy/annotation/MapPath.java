@@ -24,6 +24,11 @@ import java.lang.annotation.Target;
  *     public void edit(int id) {
  *         // edit people with id...
  *     }
+ *     
+ *     MapPath("/people/showmore/$1/$2")
+ *     public void showmore(int id,int age) {
+ *         // showmore people info with id age...
+ *     }
  * }
  * </pre>
  * 
